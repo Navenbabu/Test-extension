@@ -1,0 +1,40 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- script: echo Hello, world!
+  displayName: 'Run a one-line script'
+
+- script: |
+    echo Add other tasks to build, test, and deploy your project.
+    echo See https://aka.ms/yaml
+  displayName: 'Run a multi-line script'
+
+# Step 3: Install OWASP Dependency-Check
+- script: |
+    echo Installing OWASP Dependency-Check...
+    curl -s https://get.sdkman.io | bash
+    source "$HOME/.sdkman/bin/sdkman-init.sh"
+    sdk install dependency-check
+  displayName: 'Install OWASP Dependency-Check'
+
+# Step 4: Run OWASP Dependency-Check
+- script: |
+    echo Running OWASP Dependency-Check...
+    dependency-check --project "MyProject" --scan $(System.DefaultWorkingDirectory) --format "HTML"
+  displayName: 'Run OWASP Dependency-Check'
+
+# Step 5: Publish the Dependency-Check Report
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: $(System.DefaultWorkingDirectory)/dependency-check-report.html
+    artifact: DependencyCheckReports
+  displayName: 'Publish Dependency-Check Report'
