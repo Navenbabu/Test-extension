@@ -1,0 +1,37 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+# Step 1: Print a welcome message
+- script: echo Hello, world!
+  displayName: 'Run a one-line script'
+
+# Step 2: Add other tasks (existing starter step)
+- script: |
+    echo Add other tasks to build, test, and deploy your project.
+    echo See https://aka.ms/yaml
+  displayName: 'Run a multi-line script'
+
+# Step 3: Download OWASP Dependency-Check
+- script: |
+    echo "Downloading OWASP Dependency-Check..."
+    wget https://github.com/jeremylong/DependencyCheck/releases/download/v7.4.1/dependency-check-7.4.1-release.zip
+    unzip dependency-check-7.4.1-release.zip -d $(Agent.TempDirectory)
+    chmod +x $(Agent.TempDirectory)/dependency-check/bin/dependency-check.sh
+  displayName: 'Download and Set Up OWASP Dependency-Check'
+
+# Step 4: Run OWASP Dependency-Check
+- script: |
+    echo "Running OWASP Dependency-Check..."
+    $(Agent.TempDirectory)/dependency-check/bin/dependency-check.sh --project "MyProject" --scan $(System.DefaultWorkingDirectory) --format "HTML"
+  displayName: 'Run OWASP Dependency-Check'
+
+# Step 5: Publish the Dependency-Check Report
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: $(Agent.TempDirectory)/dependency-check-report.html
+    artifact: DependencyCheckReports
+  displayName: 'Publish Dependency-Check Report'
