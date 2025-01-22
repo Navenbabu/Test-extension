@@ -15,23 +15,23 @@ steps:
     echo See https://aka.ms/yaml
   displayName: 'Run a multi-line script'
 
-# Step 3: Install OWASP Dependency-Check
+# Step 3: Download OWASP Dependency-Check
 - script: |
-    echo Installing OWASP Dependency-Check...
-    curl -s https://get.sdkman.io | bash
-    source "$HOME/.sdkman/bin/sdkman-init.sh"
-    sdk install dependency-check
-  displayName: 'Install OWASP Dependency-Check'
+    echo "Downloading OWASP Dependency-Check..."
+    wget https://github.com/jeremylong/DependencyCheck/releases/download/v7.4.1/dependency-check-7.4.1-release.zip
+    unzip dependency-check-7.4.1-release.zip -d $(Agent.TempDirectory)
+    chmod +x $(Agent.TempDirectory)/dependency-check/bin/dependency-check.sh
+  displayName: 'Download and Set Up OWASP Dependency-Check'
 
 # Step 4: Run OWASP Dependency-Check
 - script: |
-    echo Running OWASP Dependency-Check...
-    dependency-check --project "MyProject" --scan $(System.DefaultWorkingDirectory) --format "HTML"
+    echo "Running OWASP Dependency-Check..."
+    $(Agent.TempDirectory)/dependency-check/bin/dependency-check.sh --project "MyProject" --scan $(System.DefaultWorkingDirectory) --format "HTML"
   displayName: 'Run OWASP Dependency-Check'
 
 # Step 5: Publish the Dependency-Check Report
 - task: PublishPipelineArtifact@1
   inputs:
-    targetPath: $(System.DefaultWorkingDirectory)/dependency-check-report.html
+    targetPath: $(Agent.TempDirectory)/dependency-check-report.html
     artifact: DependencyCheckReports
   displayName: 'Publish Dependency-Check Report'
